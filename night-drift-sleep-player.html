@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070707">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Night Drift • เพลงกล่อมนอน</title>
+<style>
+  :root{
+    --bg:#070707;
+    --panel:rgba(255,255,255,0.045);
+    --panel-2:rgba(255,255,255,0.07);
+    --line:rgba(255,255,255,0.14);
+    --text:#f5f5f5;
+    --text-muted:#9a9a9a;
+    --text-dim:#5c5c5c;
+    --white:#ffffff;
+    --err:#d9706f;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:11px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:linear-gradient(180deg,#000 0%, var(--bg) 30%, #0c0c0c 100%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Sarabun",sans-serif;
+    overflow-x:hidden;position:relative;-webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'SFMono-Regular',Consolas,'Courier New',monospace;}
+
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0.5;animation:twinkle 4s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:0.12;}50%{opacity:0.8;}}
+
+  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:26px 18px 60px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  header .brand{display:flex;align-items:center;gap:10px;}
+  .brandmark{width:32px;height:32px;border-radius:50%;background:#ececec;border:1px solid rgba(255,255,255,.25);position:relative;flex-shrink:0;}
+  .brandmark::after{content:'';position:absolute;width:10px;height:10px;background:#000;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:0.01em;}
+  header p{margin:0;font-size:11.5px;color:var(--text-muted);}
+  .tip-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--text-muted);font-size:13px;cursor:pointer;}
+
+  .tip-box{display:none;font-size:12.5px;line-height:1.65;color:var(--text-muted);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:18px;}
+  .tip-box.show{display:block;}
+  .tip-box b{color:var(--text);}
+
+  /* ---------- player card ---------- */
+  .player-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);padding:26px 20px 20px;margin-bottom:18px;}
+
+  .vinyl-zone{position:relative;height:182px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .platter{position:relative;width:150px;height:150px;}
+  .vinyl{
+    width:150px;height:150px;border-radius:50%;
+    background:repeating-radial-gradient(circle at center, #2b2b2b 0px, #2b2b2b 1px, #0a0a0a 2px, #0a0a0a 4px);
+    border:1px solid rgba(255,255,255,0.16);
+    display:flex;align-items:center;justify-content:center;
+    animation:spin 5s linear infinite;animation-play-state:paused;
+    box-shadow:0 10px 26px rgba(0,0,0,0.6), inset 0 0 28px rgba(0,0,0,0.75);
+  }
+  .vinyl.playing{animation-play-state:running;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .vinyl-label{width:54px;height:54px;border-radius:50%;background:#f2f2f2;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:19px;border:2px solid #000;}
+  .tonearm{position:absolute;top:-10px;right:2px;width:5px;height:96px;border-radius:3px;background:linear-gradient(#e4e4e4,#7c7c7c);transform-origin:top center;transform:rotate(-27deg);transition:transform 0.55s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
+  .tonearm::after{content:'';position:absolute;bottom:-4px;left:-5px;width:14px;height:10px;border-radius:3px;background:#eee;}
+  .tonearm.playing{transform:rotate(5deg);}
+
+  .track-meta{text-align:center;margin-bottom:16px;min-height:40px;}
+  .track-title{font-size:15.5px;font-weight:600;line-height:1.4;word-break:break-word;}
+  .track-sub{font-size:11.5px;color:var(--text-muted);margin-top:3px;}
+
+  .progress-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
+  .progress-row span{font-size:10.5px;color:var(--text-dim);width:34px;flex-shrink:0;text-align:center;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,0.16);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;}
+
+  .controls-row{display:flex;align-items:center;justify-content:center;gap:22px;margin-bottom:18px;}
+  .ctrl-btn{background:none;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.85;}
+  .ctrl-btn:active{opacity:0.5;}
+  .ctrl-btn.small{font-size:18px;color:var(--text-muted);}
+  .play-pause{width:58px;height:58px;border-radius:50%;background:#fff;color:#000;box-shadow:0 6px 20px rgba(0,0,0,0.5);}
+  .icon-play{width:0;height:0;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent currentColor;margin-left:2px;}
+  .icon-pause{display:flex;gap:4px;}
+  .icon-pause span{width:4px;height:17px;background:currentColor;border-radius:1px;}
+
+  .toggle-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .pill{font-size:11px;padding:6px 12px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;user-select:none;}
+  .pill.active{background:#fff;border-color:#fff;color:#000;}
+
+  canvas#viz{width:100%;height:36px;display:block;margin-top:12px;border-radius:8px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .tab-btn{flex:1;text-align:center;padding:10px 6px;font-size:12.5px;border-radius:var(--radius-sm);background:var(--panel);border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
+  .tab-btn.active{background:#fff;color:#000;border-color:#fff;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px;margin-bottom:14px;}
+  .card h3{margin:0 0 10px;font-size:13px;color:var(--text-muted);font-weight:600;}
+
+  .upload-zone{border:1.5px dashed var(--line);border-radius:var(--radius-md);padding:22px 14px;text-align:center;cursor:pointer;color:var(--text-muted);font-size:12.5px;}
+  .upload-zone:active{background:rgba(255,255,255,0.04);}
+  input[type=file]{display:none;}
+
+  .list{list-style:none;margin:12px 0 0;padding:0;max-height:230px;overflow-y:auto;}
+  .list li{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
+  .list li.playing{background:#fff;color:#000;}
+  .list li .dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);flex-shrink:0;}
+  .list li.playing .dot{background:#000;}
+  .list li .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .list li .rm{color:var(--text-dim);font-size:15px;padding:0 4px;}
+  .list li.playing .rm{color:#555;}
+
+  .yt-input-row{display:flex;gap:8px;}
+  .yt-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12.5px;outline:none;}
+  .yt-input-row input::placeholder{color:var(--text-dim);}
+  .btn-add{background:#fff;color:#000;border:none;border-radius:10px;padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;}
+  .yt-note{font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.6;}
+  .yt-note.err{color:var(--err);}
+  .yt-note.ok{color:#cfcfcf;}
+
+  .ambient-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .ambient-item:last-child{border-bottom:none;}
+  .switch{width:42px;height:24px;border-radius:14px;background:rgba(255,255,255,0.08);position:relative;cursor:pointer;flex-shrink:0;border:1px solid var(--line);}
+  .switch .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text-muted);transition:left 0.18s, background 0.18s;}
+  .switch.on{background:#fff;border-color:#fff;}
+  .switch.on .knob{left:20px;background:#000;}
+  .ambient-label{flex-shrink:0;width:84px;font-size:12.5px;}
+  .ambient-label small{display:block;color:var(--text-dim);font-size:10px;}
+  .ambient-item input[type=range]{flex:1;}
+
+  .discord-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:12.5px;color:var(--text-muted);border-bottom:1px solid rgba(255,255,255,0.06);}
+  .discord-row:last-of-type{border-bottom:none;}
+  .discord-input-row{display:flex;gap:8px;margin-bottom:10px;}
+  .discord-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12px;outline:none;}
+  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 14px;font-size:12.5px;cursor:pointer;}
+  .discord-status{font-size:11.5px;color:var(--text-dim);margin-top:6px;min-height:14px;}
+  .discord-status.ok{color:#cfcfcf;}
+  .discord-status.err{color:var(--err);}
+
+  .timer-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .timer-chip{padding:8px 14px;font-size:12.5px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
+  .timer-chip.active{background:#fff;border-color:#fff;color:#000;}
+  .timer-status{display:none;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:13px;}
+  .timer-status.show{display:flex;}
+  .timer-status .cancel{color:var(--err);font-size:12px;cursor:pointer;font-weight:600;}
+  .fade-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--text-muted);}
+
+  .footer-credit{text-align:center;font-size:10.5px;color:var(--text-dim);margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div class="stars" id="starfield"></div>
+
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="brandmark"></div>
+      <div>
+        <h1>Night Drift</h1>
+        <p>เพลงกล่อมนอน • เสียงธรรมชาติ • หลับสบาย</p>
+      </div>
+    </div>
+    <button class="tip-btn" id="tipBtn">i</button>
+  </header>
+
+  <div class="tip-box" id="tipBox">
+    <b>ปิดจอแล้วเสียงยังเล่นต่อได้ไหม?</b><br>
+    เล่นได้ครับ ขอแค่ไม่ปัดแอปนี้ปิดและไม่สลับไปแอปที่หยุดเสียงเอง มือถือ Android ส่วนใหญ่เล่นเพลงที่อัปโหลดเองต่อได้ตามปกติเมื่อล็อกหน้าจอ
+    ส่วน YouTube ขึ้นอยู่กับเบราว์เซอร์ของเครื่อง — ถ้าเล่น YouTube ไม่ขึ้นเลย ลองอัปโหลดไฟล์นี้ขึ้นเว็บโฮสติ้ง (เช่น GitHub Pages) แล้วเปิดผ่านลิงก์ http(s) แทนการเปิดไฟล์ตรงจากเครื่อง จะเสถียรกว่ามาก
+  </div>
+
+  <div class="player-card">
+    <div class="vinyl-zone">
+      <div class="platter">
+        <div class="vinyl" id="vinyl"><div class="vinyl-label" id="vinylLabel">♪</div></div>
+        <div class="tonearm" id="tonearm"></div>
+      </div>
+    </div>
+
+    <div class="track-meta">
+      <div class="track-title" id="trackTitle">ยังไม่ได้เลือกเพลง</div>
+      <div class="track-sub" id="trackSub">เลือกไฟล์เพลงหรือวางลิงก์ YouTube ด้านล่าง</div>
+    </div>
+
+    <div class="progress-row">
+      <span id="curTime" class="mono">0:00</span>
+      <input type="range" id="seekBar" value="0" min="0" max="100" step="0.1">
+      <span id="durTime" class="mono">0:00</span>
+    </div>
+
+    <div class="controls-row">
+      <button class="ctrl-btn small" id="prevBtn">⏮</button>
+      <button class="ctrl-btn play-pause" id="playBtn"><div class="icon-play" id="playIcon"></div></button>
+      <button class="ctrl-btn small" id="nextBtn">⏭</button>
+    </div>
+
+    <div class="toggle-row">
+      <div class="pill" id="repeatPill">🔁 วนซ้ำ</div>
+      <div class="pill" id="shufflePill">🔀 สุ่ม</div>
+      <div class="pill" id="vizPill">📊 เอฟเฟกต์เสียง</div>
+    </div>
+    <canvas id="viz" height="36" style="display:none;"></canvas>
+
+    <div class="progress-row" style="margin-top:16px;margin-bottom:0;">
+      <span>🔊</span>
+      <input type="range" id="masterVol" min="0" max="100" value="80">
+      <span id="masterVolLabel" class="mono" style="width:34px;">80%</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab-btn active" data-tab="library">เพลงของฉัน</div>
+    <div class="tab-btn" data-tab="youtube">YouTube</div>
+    <div class="tab-btn" data-tab="ambient">เสียงธรรมชาติ</div>
+  </div>
+
+  <div class="tab-content active" id="tab-library">
+    <div class="card">
+      <h3>อัปโหลดไฟล์เพลง</h3>
+      <label class="upload-zone" for="fileInput">
+        📂 แตะเพื่อเลือกไฟล์เพลง (เลือกได้หลายไฟล์)<br>
+        <span style="font-size:10.5px;">รองรับ mp3 / wav / m4a / ogg ฯลฯ</span>
+      </label>
+      <input type="file" id="fileInput" accept="audio/*" multiple>
+      <ul class="list" id="fileList"></ul>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-youtube">
+    <div class="card">
+      <h3>เพิ่มลิงก์ YouTube</h3>
+      <div class="yt-input-row">
+        <input type="text" id="ytInput" placeholder="วางลิงก์ YouTube ที่นี่...">
+        <button class="btn-add" id="ytAddBtn">เพิ่ม</button>
+      </div>
+      <p class="yt-note" id="ytStatus">กำลังเตรียมตัวเล่น YouTube...</p>
+      <ul class="list" id="ytList"></ul>
+      <p class="yt-note">เพิ่มลิงก์แล้วจะ "พร้อมเล่น" — กดปุ่ม ▶ ตรงเครื่องเล่นด้านบนเพื่อเริ่มเล่นจริง (เบราว์เซอร์กันการเล่นเสียงอัตโนมัติ ต้องกดเองครั้งแรก) วิดีโอถัดไปในคิวจะเล่นต่ออัตโนมัติเมื่อจบ</p>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-ambient">
+    <div class="card">
+      <h3>ผสมเสียงธรรมชาติ (สังเคราะห์จากโค้ดสด ไม่ใช่ไฟล์เสียง — เบามาก)</h3>
+      <div class="ambient-item" data-amb="white">
+        <div class="switch" id="amb-toggle-white"><div class="knob"></div></div>
+        <div class="ambient-label">เสียงขาว<small>White noise</small></div>
+        <input type="range" min="0" max="100" value="50" id="amb-vol-white">
+      </div>
+      <div class="ambient-item" data-amb="brown">
+        <div class="switch" id="amb-toggle-brown"><div class="knob"></div></div>
+        <div class="ambient-label">เสียงทุ้มลึก<small>Brown noise</small></div>
+        <input type="range" min="0" max="100" value="50" id="amb-vol-brown">
+      </div>
+      <div class="ambient-item" data-amb="rain">
+        <div class="switch" id="amb-toggle-rain"><div class="knob"></div></div>
+        <div class="ambient-label">เสียงฝนตก<small>Rain</small></div>
+        <input type="range" min="0" max="100" value="50" id="amb-vol-rain">
+      </div>
+      <div class="ambient-item" data-amb="ocean">
+        <div class="switch" id="amb-toggle-ocean"><div class="knob"></div></div>
+        <div class="ambient-label">คลื่นทะเล<small>Ocean waves</small></div>
+        <input type="range" min="0" max="100" value="50" id="amb-vol-ocean">
+      </div>
+      <p class="yt-note">เปิดผสมพร้อมเพลงหรือ YouTube ได้เลย วนเล่นไม่มีสิ้นสุด</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔗 เชื่อมต่อ Discord</h3>
+    <div class="discord-input-row">
+      <input type="text" id="discordWebhook" placeholder="วาง Discord Webhook URL ที่นี่...">
+      <button class="btn-secondary" id="discordTestBtn">ทดสอบ</button>
+    </div>
+    <div class="discord-row">
+      <span>แจ้งใน Discord เมื่อเริ่มเพลงใหม่</span>
+      <div class="switch" id="switch-notifyTrack"><div class="knob"></div></div>
+    </div>
+    <div class="discord-row">
+      <span>แจ้งใน Discord เมื่อ Sleep Timer หยุดเพลง</span>
+      <div class="switch" id="switch-notifySleep"><div class="knob"></div></div>
+    </div>
+    <div class="discord-status" id="discordStatus"></div>
+    <p class="yt-note">วิธีหา Webhook URL: ในเซิร์ฟเวอร์ Discord ของคุณ → ตั้งค่าช่อง (⚙️) → Integrations → Webhooks → New Webhook → Copy URL แล้วเอามาวางที่นี่ (ลิงก์นี้ใช้ส่งข้อความเข้าช่องนั้นเท่านั้น ไม่เกี่ยวกับสถานะโปรไฟล์ Discord ส่วนตัว และจะหายไปถ้าปิด/รีเฟรชหน้านี้ ต้องวางใหม่ทุกครั้งที่เปิดแอป)</p>
+  </div>
+
+  <div class="card">
+    <h3>⏰ ตัวจับเวลาหลับ (Sleep Timer)</h3>
+    <div class="timer-grid">
+      <div class="timer-chip" data-min="15">15 นาที</div>
+      <div class="timer-chip" data-min="30">30 นาที</div>
+      <div class="timer-chip" data-min="45">45 นาที</div>
+      <div class="timer-chip" data-min="60">60 นาที</div>
+      <div class="timer-chip" data-min="90">90 นาที</div>
+    </div>
+    <div class="fade-row">
+      <span>ค่อยๆเบาลงก่อนหยุด</span>
+      <div class="pill active" id="fadePill">เปิดอยู่</div>
+    </div>
+    <div class="timer-status" id="timerStatus">
+      <span>⏳ เหลือเวลา <b id="timerCountdown" class="mono">--:--</b></span>
+      <span class="cancel" id="timerCancel">ยกเลิก ✕</span>
+    </div>
+  </div>
+
+  <div class="footer-credit">Night Drift • เล่นในเบราว์เซอร์ ไม่ต้องติดตั้งแอป</div>
+</div>
+
+<audio id="audioEl" preload="metadata"></audio>
+<div id="ytPlayer" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0;"></div>
+
+<script>
+(function(){
+  const starfield = document.getElementById('starfield');
+  for(let i=0;i<26;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*70+'%';
+    s.style.animationDelay = (Math.random()*4)+'s';
+    s.style.animationDuration = (3+Math.random()*3)+'s';
+    starfield.appendChild(s);
+  }
+
+  document.getElementById('tipBtn').onclick = ()=> document.getElementById('tipBox').classList.toggle('show');
+
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    };
+  });
+
+  const audioEl = document.getElementById('audioEl');
+  let playlist = [];
+  let currentIndex = -1;
+  let sourceType = 'none';
+  let repeatOn = false;
+  let shuffleOn = false;
+  let isPlaying = false;
+
+  let ytQueue = [];
+  let ytIndex = -1;
+  let ytPlayer = null;
+  let ytReady = false;
+  let pendingPlay = false;
+  let pendingLoadIndex = -1;
+
+  let discordWebhook = '';
+  let notifyOnTrack = false;
+  let notifyOnSleepEnd = false;
+
+  let audioCtx = null;
+  let masterGain, musicGain, ambientGain, analyser, mediaSrcNode;
+  let vizEnabled = false;
+  let vizRAF = null;
+
+  function ensureAudioGraph(){
+    if(audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    musicGain = audioCtx.createGain();
+    ambientGain = audioCtx.createGain();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    musicGain.connect(analyser);
+    analyser.connect(masterGain);
+    ambientGain.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+    mediaSrcNode = audioCtx.createMediaElementSource(audioEl);
+    mediaSrcNode.connect(musicGain);
+    masterGain.gain.value = (document.getElementById('masterVol').value/100);
+  }
+  function resumeCtx(){ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
+
+  function fmtTime(sec){
+    if(!isFinite(sec) || sec<0) sec=0;
+    const m = Math.floor(sec/60), s = Math.floor(sec%60);
+    return m+':'+(s<10?'0':'')+s;
+  }
+  function setVinylPlaying(p){
+    document.getElementById('vinyl').classList.toggle('playing', p);
+    document.getElementById('tonearm').classList.toggle('playing', p);
+  }
+  function setPlayIcon(playing){
+    const icon = document.getElementById('playIcon');
+    if(playing){ icon.className='icon-pause'; icon.innerHTML='<span></span><span></span>'; }
+    else { icon.className='icon-play'; icon.innerHTML=''; }
+    isPlaying = playing;
+    setVinylPlaying(playing);
+  }
+  function setTrackInfo(title, sub){
+    document.getElementById('trackTitle').textContent = title;
+    document.getElementById('trackSub').textContent = sub;
+    document.getElementById('vinylLabel').textContent = (title && title[0]) ? title[0].toUpperCase() : '♪';
+    updateMediaSession(title, sub);
+  }
+  function updateMediaSession(title, sub){
+    if('mediaSession' in navigator){
+      try{
+        navigator.mediaSession.metadata = new MediaMetadata({ title: title||'Night Drift', artist: sub||'เพลงกล่อมนอน', album:'Night Drift' });
+      }catch(e){}
+    }
+  }
+  if('mediaSession' in navigator){
+    navigator.mediaSession.setActionHandler('play', ()=> playCurrent());
+    navigator.mediaSession.setActionHandler('pause', ()=> pauseCurrent());
+    navigator.mediaSession.setActionHandler('previoustrack', ()=> prevTrack());
+    navigator.mediaSession.setActionHandler('nexttrack', ()=> nextTrack());
+  }
+
+  /* ---------------- Discord webhook ---------------- */
+  document.getElementById('discordWebhook').addEventListener('input', e=>{ discordWebhook = e.target.value.trim(); });
+  document.getElementById('switch-notifyTrack').onclick = function(){ notifyOnTrack=!notifyOnTrack; this.classList.toggle('on', notifyOnTrack); };
+  document.getElementById('switch-notifySleep').onclick = function(){ notifyOnSleepEnd=!notifyOnSleepEnd; this.classList.toggle('on', notifyOnSleepEnd); };
+
+  function setDiscordStatus(msg, kind){
+    const el = document.getElementById('discordStatus');
+    el.textContent = msg;
+    el.className = 'discord-status'+(kind?(' '+kind):'');
+  }
+  async function sendDiscordMessage(content){
+    if(!discordWebhook){ return false; }
+    try{
+      const res = await fetch(discordWebhook, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ content: content, username:'Night Drift 🌙' })
+      });
+      return res.ok;
+    }catch(e){ return false; }
+  }
+  document.getElementById('discordTestBtn').onclick = async ()=>{
+    if(!discordWebhook){ setDiscordStatus('กรุณาวาง Webhook URL ก่อนครับ','err'); return; }
+    setDiscordStatus('กำลังส่ง...', '');
+    const ok = await sendDiscordMessage('🌙 ทดสอบการเชื่อมต่อจาก Night Drift สำเร็จแล้ว!');
+    setDiscordStatus(ok ? '✓ ส่งสำเร็จ ไปดูใน Discord ได้เลย' : '✕ ส่งไม่สำเร็จ ลองตรวจ Webhook URL อีกครั้ง', ok?'ok':'err');
+  };
+
+  /* ================= FILE PLAYLIST ================= */
+  const fileInput = document.getElementById('fileInput');
+  const fileListEl = document.getElementById('fileList');
+
+  fileInput.addEventListener('change', (e)=>{
+    Array.from(e.target.files).forEach(file=>{
+      const url = URL.createObjectURL(file);
+      playlist.push({name:file.name.replace(/\.[a-zA-Z0-9]+$/, ''), url});
+    });
+    renderFileList();
+    if(currentIndex===-1 && playlist.length>0){ loadFileTrack(0); }
+    fileInput.value='';
+  });
+  function renderFileList(){
+    fileListEl.innerHTML='';
+    playlist.forEach((track, i)=>{
+      const li = document.createElement('li');
+      li.className = (i===currentIndex && sourceType==='file') ? 'playing':'';
+      li.innerHTML = '<span class="dot"></span><span class="name">'+escapeHtml(track.name)+'</span><span class="rm" data-i="'+i+'">✕</span>';
+      li.onclick = (ev)=>{ if(ev.target.classList.contains('rm')) return; loadFileTrack(i); playCurrent(); };
+      li.querySelector('.rm').onclick = (ev)=>{ ev.stopPropagation(); removeFileTrack(i); };
+      fileListEl.appendChild(li);
+    });
+  }
+  function removeFileTrack(i){
+    if(i===currentIndex && sourceType==='file'){ pauseCurrent(); }
+    playlist.splice(i,1);
+    if(currentIndex>i) currentIndex--;
+    else if(currentIndex===i) currentIndex=-1;
+    renderFileList();
+  }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function loadFileTrack(i){
+    if(i<0 || i>=playlist.length) return;
+    ensureAudioGraph();
+    currentIndex = i;
+    sourceType = 'file';
+    audioEl.src = playlist[i].url;
+    setTrackInfo(playlist[i].name, 'จากไฟล์ของคุณ');
+    renderFileList();
+    if(notifyOnTrack) sendDiscordMessage('🎵 กำลังฟัง: '+playlist[i].name);
+  }
+
+  audioEl.addEventListener('timeupdate', ()=>{
+    if(sourceType!=='file') return;
+    const seek = document.getElementById('seekBar');
+    if(audioEl.duration){
+      seek.value = (audioEl.currentTime/audioEl.duration)*100;
+      document.getElementById('curTime').textContent = fmtTime(audioEl.currentTime);
+      document.getElementById('durTime').textContent = fmtTime(audioEl.duration);
+    }
+  });
+  audioEl.addEventListener('play', ()=> setPlayIcon(true));
+  audioEl.addEventListener('pause', ()=> setPlayIcon(false));
+  audioEl.addEventListener('ended', ()=>{ if(sourceType==='file') nextTrack(); });
+
+  /* ================= YOUTUBE ================= */
+  const ytInput = document.getElementById('ytInput');
+  const ytListEl = document.getElementById('ytList');
+
+  function extractYouTubeId(url){
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/shorts\/|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+  function setYtStatus(msg, isErr){
+    const el = document.getElementById('ytStatus');
+    el.textContent = msg;
+    el.className = 'yt-note'+(isErr?' err':' ok');
+  }
+
+  document.getElementById('ytAddBtn').onclick = ()=>{
+    const id = extractYouTubeId(ytInput.value.trim());
+    if(!id){ setYtStatus('ลิงก์ไม่ถูกต้อง ลองคัดลอกจาก YouTube ใหม่อีกครั้งนะครับ', true); return; }
+    ytQueue.push({id});
+    ytInput.value='';
+    renderYtList();
+    if(ytIndex===-1){ loadYtIndex(ytQueue.length-1); }
+    else { setYtStatus('เพิ่มลงคิวแล้ว (มี '+ytQueue.length+' รายการ)', false); }
+  };
+
+  function renderYtList(){
+    ytListEl.innerHTML='';
+    ytQueue.forEach((item,i)=>{
+      const li = document.createElement('li');
+      li.className = (i===ytIndex && sourceType==='youtube') ? 'playing':'';
+      li.innerHTML = '<span class="dot"></span><span class="name">วิดีโอ #'+(i+1)+' • '+item.id+'</span><span class="rm" data-i="'+i+'">✕</span>';
+      li.onclick = (ev)=>{
+        if(ev.target.classList.contains('rm')) return;
+        loadYtIndex(i);
+        if(ytReady){ ytPlayer.playVideo(); } else { pendingPlay = true; }
+      };
+      li.querySelector('.rm').onclick=(ev)=>{
+        ev.stopPropagation();
+        ytQueue.splice(i,1);
+        if(ytIndex>i) ytIndex--; else if(ytIndex===i) ytIndex=-1;
+        renderYtList();
+      };
+      ytListEl.appendChild(li);
+    });
+  }
+
+  const ytScript = document.createElement('script');
+  ytScript.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(ytScript);
+  window.onYouTubeIframeAPIReady = function(){
+    ytPlayer = new YT.Player('ytPlayer', {
+      height:'1', width:'1',
+      playerVars:{ playsinline:1 },
+      events:{ onReady: onYtReady, onStateChange: onYtStateChange, onError: onYtError }
+    });
+  };
+  setTimeout(()=>{
+    if(!ytReady){
+      setYtStatus('โหลดตัวเล่น YouTube ไม่สำเร็จ — เช็คอินเทอร์เน็ต หรือถ้าเปิดไฟล์นี้แบบดับเบิลคลิกจากเครื่องตรงๆ บางเบราว์เซอร์บล็อกการเชื่อมต่อ YouTube ลองอัปโหลดไฟล์นี้ขึ้นเว็บโฮสติ้ง (เช่น GitHub Pages) แล้วเปิดผ่านลิงก์ http(s) จะเสถียรกว่าครับ', true);
+    }
+  }, 6000);
+  function onYtReady(){
+    ytReady = true;
+    if(pendingLoadIndex>-1){ const i=pendingLoadIndex; pendingLoadIndex=-1; loadYtIndex(i); }
+    if(pendingPlay){ pendingPlay=false; ytPlayer.playVideo(); }
+  }
+  function onYtStateChange(e){
+    if(e.data === YT.PlayerState.PLAYING){ setPlayIcon(true); setYtStatus('กำลังเล่นอยู่', false); }
+    else if(e.data === YT.PlayerState.PAUSED){ setPlayIcon(false); }
+    else if(e.data === YT.PlayerState.ENDED){ if(sourceType==='youtube') nextTrack(); }
+  }
+  function onYtError(e){
+    const map = {2:'รหัสวิดีโอไม่ถูกต้อง',5:'เครื่องเล่นมีปัญหา ลองวิดีโออื่น',100:'ไม่พบวิดีโอนี้ (อาจถูกลบหรือเป็นส่วนตัว)',101:'เจ้าของวิดีโอนี้ปิดการฝังเล่นนอก YouTube ลองวิดีโออื่นนะครับ',150:'เจ้าของวิดีโอนี้ปิดการฝังเล่นนอก YouTube ลองวิดีโออื่นนะครับ'};
+    setYtStatus('⚠ '+(map[e.data]||'เล่นวิดีโอนี้ไม่ได้'), true);
+  }
+  function loadYtIndex(i){
+    if(i<0 || i>=ytQueue.length) return;
+    ytIndex = i;
+    sourceType = 'youtube';
+    audioEl.pause();
+    if(ytReady){
+      ytPlayer.cueVideoById(ytQueue[i].id);
+      ytPlayer.setVolume(document.getElementById('masterVol').value);
+      setTrackInfo('วิดีโอ YouTube #'+(i+1), 'พร้อมแล้ว — กดปุ่ม ▶ เพื่อเล่น');
+      setYtStatus('พร้อมเล่นแล้ว กดปุ่ม ▶ ที่เครื่องเล่นด้านบน', false);
+      if(notifyOnTrack) sendDiscordMessage('🎵 กำลังฟัง: วิดีโอ YouTube ('+ytQueue[i].id+')');
+    } else {
+      pendingLoadIndex = i;
+      setYtStatus('กำลังโหลดตัวเล่น YouTube รอสักครู่...', false);
+    }
+    renderYtList();
+  }
+
+  /* ================= UNIFIED TRANSPORT ================= */
+  function playCurrent(){
+    resumeCtx();
+    if(sourceType==='file'){ audioEl.play().catch(()=>{}); }
+    else if(sourceType==='youtube'){
+      if(ytReady){ ytPlayer.playVideo(); }
+      else { pendingPlay = true; setYtStatus('กำลังโหลดตัวเล่น รอสักครู่แล้วจะเล่นอัตโนมัติ...', false); }
+    }
+    else if(sourceType==='none'){
+      if(playlist.length>0){ loadFileTrack(0); audioEl.play().catch(()=>{}); }
+      else if(ytQueue.length>0){ loadYtIndex(0); if(ytReady) ytPlayer.playVideo(); else pendingPlay=true; }
+    }
+  }
+  function pauseCurrent(){
+    if(sourceType==='file'){ audioEl.pause(); }
+    else if(sourceType==='youtube' && ytReady){ ytPlayer.pauseVideo(); }
+    setPlayIcon(false);
+  }
+  function nextTrack(){
+    if(sourceType==='file'){
+      if(playlist.length===0) return;
+      let ni;
+      if(shuffleOn) ni = Math.floor(Math.random()*playlist.length);
+      else ni = currentIndex+1>=playlist.length ? (repeatOn?0:currentIndex) : currentIndex+1;
+      if(ni===currentIndex && !repeatOn && currentIndex===playlist.length-1){ pauseCurrent(); return; }
+      loadFileTrack(ni); audioEl.play().catch(()=>{});
+    } else if(sourceType==='youtube'){
+      if(ytQueue.length===0) return;
+      let ni = ytIndex+1>=ytQueue.length ? (repeatOn?0:ytIndex) : ytIndex+1;
+      if(ni===ytIndex && !repeatOn && ytIndex===ytQueue.length-1){ pauseCurrent(); return; }
+      loadYtIndex(ni); if(ytReady) ytPlayer.playVideo(); else pendingPlay=true;
+    }
+  }
+  function prevTrack(){
+    if(sourceType==='file'){
+      if(playlist.length===0) return;
+      let pi = currentIndex-1<0 ? (repeatOn?playlist.length-1:0) : currentIndex-1;
+      loadFileTrack(pi); audioEl.play().catch(()=>{});
+    } else if(sourceType==='youtube'){
+      if(ytQueue.length===0) return;
+      let pi = ytIndex-1<0 ? (repeatOn?ytQueue.length-1:0) : ytIndex-1;
+      loadYtIndex(pi); if(ytReady) ytPlayer.playVideo(); else pendingPlay=true;
+    }
+  }
+
+  document.getElementById('playBtn').onclick = ()=> isPlaying ? pauseCurrent() : playCurrent();
+  document.getElementById('nextBtn').onclick = nextTrack;
+  document.getElementById('prevBtn').onclick = prevTrack;
+  document.getElementById('repeatPill').onclick = function(){ repeatOn=!repeatOn; this.classList.toggle('active', repeatOn); };
+  document.getElementById('shufflePill').onclick = function(){ shuffleOn=!shuffleOn; this.classList.toggle('active', shuffleOn); };
+
+  const seekBar = document.getElementById('seekBar');
+  seekBar.addEventListener('input', ()=>{
+    if(sourceType==='file' && audioEl.duration){ audioEl.currentTime = (seekBar.value/100)*audioEl.duration; }
+  });
+
+  const masterVol = document.getElementById('masterVol');
+  masterVol.addEventListener('input', ()=>{
+    const v = masterVol.value;
+    document.getElementById('masterVolLabel').textContent = v+'%';
+    if(masterGain) masterGain.gain.value = v/100;
+    if(ytPlayer && ytReady) ytPlayer.setVolume(v);
+  });
+
+  /* ================= VISUALIZER ================= */
+  const vizCanvas = document.getElementById('viz');
+  const vizCtx2d = vizCanvas.getContext('2d');
+  document.getElementById('vizPill').onclick = function(){
+    vizEnabled = !vizEnabled;
+    this.classList.toggle('active', vizEnabled);
+    vizCanvas.style.display = vizEnabled ? 'block':'none';
+    if(vizEnabled){ ensureAudioGraph(); drawViz(); }
+    else if(vizRAF){ cancelAnimationFrame(vizRAF); vizRAF=null; }
+  };
+  function drawViz(){
+    if(!vizEnabled){ return; }
+    if(document.hidden){ vizRAF = requestAnimationFrame(drawViz); return; }
+    const w = vizCanvas.width = vizCanvas.clientWidth;
+    const h = vizCanvas.height;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    vizCtx2d.clearRect(0,0,w,h);
+    const barW = w/data.length;
+    for(let i=0;i<data.length;i++){
+      const bh = (data[i]/255)*h;
+      vizCtx2d.fillStyle = 'rgba(255,255,255,'+(0.3+data[i]/360)+')';
+      vizCtx2d.fillRect(i*barW, h-bh, barW-2, bh);
+    }
+    vizRAF = requestAnimationFrame(drawViz);
+  }
+
+  /* ================= AMBIENT SOUND GENERATORS ================= */
+  const ambient = {
+    white:{playing:false, gain:null, src:null, vol:0.5},
+    brown:{playing:false, gain:null, src:null, vol:0.5},
+    rain:{playing:false, gain:null, src:null, vol:0.5},
+    ocean:{playing:false, gain:null, src:null, lfo:null, lfoGain:null, vol:0.5}
+  };
+  function makeNoiseBuffer(seconds, kind){
+    ensureAudioGraph();
+    const len = audioCtx.sampleRate*seconds;
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    if(kind==='white'){ for(let i=0;i<len;i++) data[i]=Math.random()*2-1; }
+    else if(kind==='brown'){
+      let last=0;
+      for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; data[i]=last*3.5; }
+    } else {
+      let b0=0,b1=0,b2=0;
+      for(let i=0;i<len;i++){
+        const w=Math.random()*2-1;
+        b0=0.99*b0+w*0.05; b1=0.95*b1+w*0.1; b2=0.7*b2+w*0.2;
+        data[i]=(b0+b1+b2)*0.6;
+      }
+    }
+    return buf;
+  }
+  function toggleAmbient(key){
+    ensureAudioGraph();
+    const a = ambient[key];
+    const toggleEl = document.getElementById('amb-toggle-'+key);
+    if(a.playing){
+      try{ a.src.stop(); }catch(e){}
+      if(a.lfo){ try{a.lfo.stop();}catch(e){} a.lfo=null; }
+      a.src=null; a.playing=false;
+      toggleEl.classList.remove('on');
+      return;
+    }
+    let buf, srcNode, filterNode;
+    const gainNode = a.gain || audioCtx.createGain();
+    gainNode.gain.value = 0;
+    gainNode.connect(ambientGain);
+    if(key==='white'){
+      buf = makeNoiseBuffer(2,'white');
+      srcNode = audioCtx.createBufferSource(); srcNode.buffer=buf; srcNode.loop=true;
+      filterNode = audioCtx.createBiquadFilter(); filterNode.type='lowpass'; filterNode.frequency.value=3200;
+      srcNode.connect(filterNode); filterNode.connect(gainNode);
+    } else if(key==='brown'){
+      buf = makeNoiseBuffer(2,'brown');
+      srcNode = audioCtx.createBufferSource(); srcNode.buffer=buf; srcNode.loop=true;
+      srcNode.connect(gainNode);
+    } else if(key==='rain'){
+      buf = makeNoiseBuffer(3,'pink');
+      srcNode = audioCtx.createBufferSource(); srcNode.buffer=buf; srcNode.loop=true;
+      filterNode = audioCtx.createBiquadFilter(); filterNode.type='highpass'; filterNode.frequency.value=900;
+      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=6500;
+      srcNode.connect(filterNode); filterNode.connect(lp); lp.connect(gainNode);
+    } else if(key==='ocean'){
+      buf = makeNoiseBuffer(4,'pink');
+      srcNode = audioCtx.createBufferSource(); srcNode.buffer=buf; srcNode.loop=true;
+      filterNode = audioCtx.createBiquadFilter(); filterNode.type='lowpass'; filterNode.frequency.value=1100;
+      srcNode.connect(filterNode); filterNode.connect(gainNode);
+      const lfo = audioCtx.createOscillator(); lfo.frequency.value=0.13; lfo.type='sine';
+      const lfoGain = audioCtx.createGain(); lfoGain.gain.value = a.vol*0.45;
+      lfo.connect(lfoGain); lfoGain.connect(gainNode.gain);
+      lfo.start();
+      a.lfo=lfo; a.lfoGain=lfoGain;
+    }
+    srcNode.start();
+    gainNode.gain.linearRampToValueAtTime(a.vol, audioCtx.currentTime+0.6);
+    a.gain=gainNode; a.src=srcNode; a.playing=true;
+    toggleEl.classList.add('on');
+  }
+  ['white','brown','rain','ocean'].forEach(key=>{
+    document.getElementById('amb-toggle-'+key).onclick = ()=> toggleAmbient(key);
+    document.getElementById('amb-vol-'+key).addEventListener('input', (e)=>{
+      const v = e.target.value/100;
+      ambient[key].vol = v;
+      if(ambient[key].gain && audioCtx) ambient[key].gain.gain.linearRampToValueAtTime(v, audioCtx.currentTime+0.1);
+      if(key==='ocean' && ambient[key].lfoGain) ambient[key].lfoGain.gain.value = v*0.45;
+    });
+  });
+
+  /* ================= SLEEP TIMER ================= */
+  let sleepFadeEnabled = true;
+  let sleepTimers = [];
+  let sleepEndAt = null;
+  let savedMasterVol = null;
+
+  document.getElementById('fadePill').onclick = function(){
+    sleepFadeEnabled = !sleepFadeEnabled;
+    this.textContent = sleepFadeEnabled ? 'เปิดอยู่' : 'ปิดอยู่';
+    this.classList.toggle('active', sleepFadeEnabled);
+  };
+  document.querySelectorAll('.timer-chip').forEach(chip=>{
+    chip.onclick = ()=>{
+      document.querySelectorAll('.timer-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      startSleepTimer(parseInt(chip.dataset.min,10));
+    };
+  });
+  document.getElementById('timerCancel').onclick = cancelSleepTimer;
+
+  function clearSleepTimers(){ sleepTimers.forEach(id=>{ clearTimeout(id); clearInterval(id); }); sleepTimers=[]; }
+  function startSleepTimer(minutes){
+    clearSleepTimers();
+    ensureAudioGraph();
+    const totalMs = minutes*60000;
+    const fadeMs = sleepFadeEnabled ? Math.min(30000, totalMs*0.4) : 0;
+    sleepEndAt = Date.now()+totalMs;
+    savedMasterVol = masterGain.gain.value;
+
+    document.getElementById('timerStatus').classList.add('show');
+    const tick = setInterval(()=>{
+      const remain = Math.max(0, sleepEndAt-Date.now());
+      document.getElementById('timerCountdown').textContent = fmtTime(remain/1000);
+      if(remain<=0) clearInterval(tick);
+    }, 1000);
+    sleepTimers.push(tick);
+
+    if(fadeMs>0){
+      const fadeStart = setTimeout(()=>{
+        const now = audioCtx.currentTime;
+        masterGain.gain.cancelScheduledValues(now);
+        masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+        masterGain.gain.linearRampToValueAtTime(0.0001, now+fadeMs/1000);
+        if(ytPlayer && ytReady && sourceType==='youtube'){ fadeYtVolume(fadeMs); }
+      }, Math.max(0,totalMs-fadeMs));
+      sleepTimers.push(fadeStart);
+    }
+    const stopAt = setTimeout(()=>{
+      pauseCurrent();
+      ambientStopAll();
+      if(masterGain){ masterGain.gain.cancelScheduledValues(audioCtx.currentTime); masterGain.gain.value = savedMasterVol; }
+      if(ytPlayer && ytReady) ytPlayer.setVolume(masterVol.value);
+      document.getElementById('timerStatus').classList.remove('show');
+      document.querySelectorAll('.timer-chip').forEach(c=>c.classList.remove('active'));
+      if(notifyOnSleepEnd) sendDiscordMessage('😴 Sleep Timer หยุดเพลงแล้ว ราตรีสวัสดิ์');
+    }, totalMs);
+    sleepTimers.push(stopAt);
+  }
+  function fadeYtVolume(durationMs){
+    const steps=20; const startVol = ytPlayer.getVolume();
+    let i=0;
+    const iv = setInterval(()=>{
+      i++;
+      const v = Math.max(0, startVol*(1-i/steps));
+      ytPlayer.setVolume(v);
+      if(i>=steps) clearInterval(iv);
+    }, durationMs/steps);
+    sleepTimers.push(iv);
+  }
+  function cancelSleepTimer(){
+    clearSleepTimers();
+    document.getElementById('timerStatus').classList.remove('show');
+    document.querySelectorAll('.timer-chip').forEach(c=>c.classList.remove('active'));
+    if(masterGain && savedMasterVol!==null){ masterGain.gain.cancelScheduledValues(audioCtx.currentTime); masterGain.gain.value = savedMasterVol; }
+  }
+  function ambientStopAll(){
+    Object.keys(ambient).forEach(key=>{ if(ambient[key].playing) toggleAmbient(key); });
+  }
+
+})();
+</script>
+</body>
+</html>
