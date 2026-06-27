@@ -277,6 +277,7 @@
       </label>
       <input type="file" id="fileInput" accept="audio/*" multiple>
       <ul class="list" id="fileList"></ul>
+      <p class="yt-note">✓ เพลงจากไฟล์อัปโหลดเล่นต่อได้ตอนปิดจอ/ล็อกหน้าจอ — แนะนำให้ใช้แท็บนี้ถ้าต้องการเปิดฟังตอนนอน</p>
     </div>
   </div>
 
@@ -292,6 +293,7 @@
       </div>
       <p class="yt-note" id="ytStatus">กำลังเตรียมตัวเล่น YouTube...</p>
       <ul class="list" id="ytList"></ul>
+      <p class="yt-note err">⚠ ข้อจำกัดของ YouTube: เบราว์เซอร์จะหยุดเล่นเสียงทันทีที่ปิดจอ/ล็อกหน้าจอ เพราะ YouTube เล่นผ่าน iframe ข้ามโดเมนซึ่งระบบปฏิบัติการตัดสิทธิ์เล่นเบื้องหลังไว้ — แก้ผ่านโค้ดของเว็บนี้ไม่ได้ ถ้าจะฟังตอนนอน/ปิดจอ แนะนำใช้แท็บ "เพลงของฉัน" (อัปโหลดไฟล์) แทน</p>
       <p class="yt-note">กดเพิ่มแล้วระบบจะเช็คทันทีว่าเล่นได้จริงไหม (✓ = เล่นได้ / ✕ = เล่นไม่ได้ จะลบออกจากคิวให้อัตโนมัติ) — ถ้ามีเพลงเล่นอยู่จะข้ามการเช็คเพื่อไม่ให้เสียงสะดุด กดปุ่ม ▶ ตรงเครื่องเล่นด้านบนเพื่อเริ่มเล่นจริง (เบราว์เซอร์กันการเล่นเสียงอัตโนมัติ ต้องกดเองครั้งแรก) วิดีโอถัดไปในคิวจะเล่นต่ออัตโนมัติเมื่อจบ • คิวที่เพิ่มจะถูกบันทึกในเครื่องนี้อัตโนมัติ เปิดแอปใหม่ก็ยังอยู่</p>
     </div>
   </div>
@@ -437,7 +439,26 @@
     mediaSrcNode.connect(musicGain);
     masterGain.gain.value = (document.getElementById('masterVol').value/100);
   }
-  function resumeCtx(){ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
+  function resumeCtx(){ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(()=>{}); }
+
+  // Android Chrome can silently suspend the AudioContext when the screen locks or
+  // the tab goes to background — since uploaded files are routed through it for the
+  // visualizer/volume graph, that would mute "background" playback even though the
+  // <audio> element itself is still playing. Keep nudging it back to 'running'.
+  let ctxWatchdog = null;
+  function startCtxWatchdog(){
+    if(ctxWatchdog) return;
+    ctxWatchdog = setInterval(()=>{
+      if(audioCtx && audioCtx.state==='suspended' && isPlaying){ resumeCtx(); }
+    }, 1500);
+  }
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden){ resumeCtx(); }
+  });
+  // Also try right when the screen/tab comes back, and right after any user tap
+  // (a user gesture is sometimes required for resume() to actually take effect)
+  document.addEventListener('click', resumeCtx, {passive:true});
+  startCtxWatchdog();
 
   function fmtTime(sec){
     if(!isFinite(sec) || sec<0) sec=0;
@@ -455,6 +476,9 @@
     isPlaying = playing;
     setVinylPlaying(playing);
     document.getElementById('playBtn').classList.toggle('is-playing', playing);
+    if('mediaSession' in navigator){
+      try{ navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; }catch(e){}
+    }
   }
   function setTrackInfo(title, sub){
     document.getElementById('trackTitle').textContent = title;
@@ -474,6 +498,13 @@
     navigator.mediaSession.setActionHandler('pause', ()=> pauseCurrent());
     navigator.mediaSession.setActionHandler('previoustrack', ()=> prevTrack());
     navigator.mediaSession.setActionHandler('nexttrack', ()=> nextTrack());
+    try{
+      navigator.mediaSession.setActionHandler('seekto', (details)=>{
+        if(sourceType==='file' && audioEl.duration && details.seekTime!=null){
+          audioEl.currentTime = details.seekTime;
+        }
+      });
+    }catch(e){}
   }
 
   /* ---------------- Discord webhook ---------------- */
@@ -630,6 +661,15 @@
       seek.value = (audioEl.currentTime/audioEl.duration)*100;
       document.getElementById('curTime').textContent = fmtTime(audioEl.currentTime);
       document.getElementById('durTime').textContent = fmtTime(audioEl.duration);
+      if('mediaSession' in navigator && navigator.mediaSession.setPositionState){
+        try{
+          navigator.mediaSession.setPositionState({
+            duration: audioEl.duration,
+            playbackRate: audioEl.playbackRate || 1,
+            position: audioEl.currentTime
+          });
+        }catch(e){}
+      }
     }
   });
   audioEl.addEventListener('play', ()=> setPlayIcon(true));
@@ -818,11 +858,31 @@
     if(pendingLoadIndex>-1){ const i=pendingLoadIndex; pendingLoadIndex=-1; loadYtIndex(i); }
     if(pendingPlay){ pendingPlay=false; ytPlayer.playVideo(); }
   }
+  let ytProgressInterval = null;
+  function startYtProgressPoll(){
+    stopYtProgressPoll();
+    ytProgressInterval = setInterval(()=>{
+      if(sourceType!=='youtube' || !ytReady || !ytPlayer || typeof ytPlayer.getCurrentTime!=='function') return;
+      const dur = ytPlayer.getDuration();
+      const cur = ytPlayer.getCurrentTime();
+      if(dur>0){
+        document.getElementById('seekBar').value = (cur/dur)*100;
+        document.getElementById('curTime').textContent = fmtTime(cur);
+        document.getElementById('durTime').textContent = fmtTime(dur);
+        if('mediaSession' in navigator && navigator.mediaSession.setPositionState){
+          try{ navigator.mediaSession.setPositionState({ duration: dur, playbackRate: 1, position: cur }); }catch(e){}
+        }
+      }
+    }, 500);
+  }
+  function stopYtProgressPoll(){
+    if(ytProgressInterval){ clearInterval(ytProgressInterval); ytProgressInterval=null; }
+  }
   function onYtStateChange(e){
     if(ytCheckStateHandler){ ytCheckStateHandler(e); }
-    if(e.data === YT.PlayerState.PLAYING){ setPlayIcon(true); setYtStatus('กำลังเล่นอยู่', false); }
-    else if(e.data === YT.PlayerState.PAUSED){ setPlayIcon(false); }
-    else if(e.data === YT.PlayerState.ENDED){ if(sourceType==='youtube') nextTrack(); }
+    if(e.data === YT.PlayerState.PLAYING){ setPlayIcon(true); setYtStatus('กำลังเล่นอยู่', false); startYtProgressPoll(); }
+    else if(e.data === YT.PlayerState.PAUSED){ setPlayIcon(false); stopYtProgressPoll(); }
+    else if(e.data === YT.PlayerState.ENDED){ stopYtProgressPoll(); if(sourceType==='youtube') nextTrack(); }
   }
   function onYtError(e){
     if(ytCheckErrorHandler){ ytCheckErrorHandler(e); return; }
@@ -831,9 +891,13 @@
   }
   function loadYtIndex(i){
     if(i<0 || i>=ytQueue.length) return;
+    stopYtProgressPoll();
     ytIndex = i;
     sourceType = 'youtube';
     audioEl.pause();
+    document.getElementById('seekBar').value = 0;
+    document.getElementById('curTime').textContent = '0:00';
+    document.getElementById('durTime').textContent = '0:00';
     const item = ytQueue[i];
     const displayTitle = item.title || ('วิดีโอ YouTube #'+(i+1));
     const displaySub = item.author || 'YouTube';
@@ -904,7 +968,12 @@
 
   const seekBar = document.getElementById('seekBar');
   seekBar.addEventListener('input', ()=>{
-    if(sourceType==='file' && audioEl.duration){ audioEl.currentTime = (seekBar.value/100)*audioEl.duration; }
+    if(sourceType==='file' && audioEl.duration){
+      audioEl.currentTime = (seekBar.value/100)*audioEl.duration;
+    } else if(sourceType==='youtube' && ytReady && ytPlayer && typeof ytPlayer.getDuration==='function'){
+      const dur = ytPlayer.getDuration();
+      if(dur>0) ytPlayer.seekTo((seekBar.value/100)*dur, true);
+    }
   });
 
   const masterVol = document.getElementById('masterVol');
