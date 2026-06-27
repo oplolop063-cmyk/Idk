@@ -45,10 +45,12 @@
   .brandmark::after{content:'';position:absolute;width:10px;height:10px;background:#000;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
   header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:0.01em;}
   header p{margin:0;font-size:11.5px;color:var(--text-muted);}
-  .tip-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--text-muted);font-size:13px;cursor:pointer;}
+  .tip-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--text-muted);font-size:13px;cursor:pointer;transition:transform 0.2s, background 0.2s, border-color 0.2s;}
+  .tip-btn:active{transform:scale(0.88) rotate(-8deg);background:var(--panel-2);}
 
-  .tip-box{display:none;font-size:12.5px;line-height:1.65;color:var(--text-muted);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:18px;}
-  .tip-box.show{display:block;}
+  .tip-box{display:none;font-size:12.5px;line-height:1.65;color:var(--text-muted);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:18px;opacity:0;transform:translateY(-6px);transition:opacity 0.25s, transform 0.25s;}
+  .tip-box.show{display:block;animation:tipIn 0.25s ease forwards;}
+  @keyframes tipIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
   .tip-box b{color:var(--text);}
 
   /* ---------- player card ---------- */
@@ -78,58 +80,85 @@
   .progress-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
   .progress-row span{font-size:10.5px;color:var(--text-dim);width:34px;flex-shrink:0;text-align:center;}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,0.16);outline:none;}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;}
-  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;transition:transform 0.12s;}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.35);}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;transition:transform 0.12s;}
+  input[type=range]::-moz-range-thumb:active{transform:scale(1.35);}
 
   .controls-row{display:flex;align-items:center;justify-content:center;gap:22px;margin-bottom:18px;}
-  .ctrl-btn{background:none;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.85;}
-  .ctrl-btn:active{opacity:0.5;}
+  .ctrl-btn{background:none;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.85;transition:transform 0.15s, opacity 0.15s;}
+  .ctrl-btn:active{opacity:0.5;transform:scale(0.88);}
   .ctrl-btn.small{font-size:18px;color:var(--text-muted);}
-  .play-pause{width:58px;height:58px;border-radius:50%;background:#fff;color:#000;box-shadow:0 6px 20px rgba(0,0,0,0.5);}
+  .play-pause{width:58px;height:58px;border-radius:50%;background:#fff;color:#000;box-shadow:0 6px 20px rgba(0,0,0,0.5);transition:transform 0.15s, box-shadow 0.3s;}
+  .play-pause:active{transform:scale(0.9);}
+  .play-pause.is-playing{animation:playGlow 2.4s ease-in-out infinite;}
+  @keyframes playGlow{0%,100%{box-shadow:0 6px 20px rgba(0,0,0,0.5), 0 0 0 0 rgba(255,255,255,0.25);}50%{box-shadow:0 6px 20px rgba(0,0,0,0.5), 0 0 0 7px rgba(255,255,255,0.06);}}
   .icon-play{width:0;height:0;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent currentColor;margin-left:2px;}
   .icon-pause{display:flex;gap:4px;}
   .icon-pause span{width:4px;height:17px;background:currentColor;border-radius:1px;}
 
   .toggle-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
-  .pill{font-size:11px;padding:6px 12px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;user-select:none;}
+  .pill{font-size:11px;padding:6px 12px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;user-select:none;transition:transform 0.15s, background 0.2s, color 0.2s, border-color 0.2s;}
+  .pill:active{transform:scale(0.92);}
   .pill.active{background:#fff;border-color:#fff;color:#000;}
 
   canvas#viz{width:100%;height:36px;display:block;margin-top:12px;border-radius:8px;}
 
   .tabs{display:flex;gap:8px;margin-bottom:14px;}
-  .tab-btn{flex:1;text-align:center;padding:10px 6px;font-size:12.5px;border-radius:var(--radius-sm);background:var(--panel);border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
+  .tab-btn{flex:1;text-align:center;padding:10px 6px;font-size:12.5px;border-radius:var(--radius-sm);background:var(--panel);border:1px solid var(--line);color:var(--text-muted);cursor:pointer;transition:transform 0.15s, background 0.2s, color 0.2s, border-color 0.2s;}
+  .tab-btn:active{transform:scale(0.96);}
   .tab-btn.active{background:#fff;color:#000;border-color:#fff;}
   .tab-content{display:none;}
-  .tab-content.active{display:block;}
+  .tab-content.active{display:block;animation:fadeUp 0.28s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px;margin-bottom:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px;margin-bottom:14px;animation:fadeUp 0.35s ease;}
   .card h3{margin:0 0 10px;font-size:13px;color:var(--text-muted);font-weight:600;}
 
-  .upload-zone{border:1.5px dashed var(--line);border-radius:var(--radius-md);padding:22px 14px;text-align:center;cursor:pointer;color:var(--text-muted);font-size:12.5px;}
-  .upload-zone:active{background:rgba(255,255,255,0.04);}
+  .upload-zone{border:1.5px dashed var(--line);border-radius:var(--radius-md);padding:22px 14px;text-align:center;cursor:pointer;color:var(--text-muted);font-size:12.5px;transition:transform 0.15s, background 0.2s, border-color 0.2s;}
+  .upload-zone:active{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.35);transform:scale(0.985);}
   input[type=file]{display:none;}
 
   .list{list-style:none;margin:12px 0 0;padding:0;max-height:230px;overflow-y:auto;}
-  .list li{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--text-muted);}
+  .list li{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:background 0.2s, color 0.2s, transform 0.15s;animation:liIn 0.25s ease;}
+  @keyframes liIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
+  .list li:active{transform:scale(0.98);background:rgba(255,255,255,0.04);}
   .list li.playing{background:#fff;color:#000;}
+  .list li.playing:active{background:#eee;}
   .list li .dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);flex-shrink:0;}
   .list li.playing .dot{background:#000;}
   .list li .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .list li .rm{color:var(--text-dim);font-size:15px;padding:0 4px;}
+  .list li .rm{color:var(--text-dim);font-size:15px;padding:0 4px;transition:transform 0.15s, color 0.15s;}
+  .list li .rm:active{transform:scale(1.3);color:var(--err);}
   .list li.playing .rm{color:#555;}
 
   .yt-input-row{display:flex;gap:8px;}
-  .yt-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12.5px;outline:none;}
+  .yt-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12.5px;outline:none;transition:border-color 0.2s, background 0.2s;}
+  .yt-input-row input:focus{border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.09);}
   .yt-input-row input::placeholder{color:var(--text-dim);}
-  .btn-add{background:#fff;color:#000;border:none;border-radius:10px;padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;}
+  .btn-add{background:#fff;color:#000;border:none;border-radius:10px;padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;min-width:64px;transition:transform 0.15s, opacity 0.2s, background 0.2s;}
+  .btn-add:active{transform:scale(0.94);}
+  .btn-add.loading{opacity:0.6;cursor:wait;animation:pulseAdd 0.9s ease-in-out infinite;}
+  @keyframes pulseAdd{0%,100%{opacity:0.55;}50%{opacity:0.85;}}
   .yt-note{font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.6;}
   .yt-note.err{color:var(--err);}
   .yt-note.ok{color:#cfcfcf;}
+  .yt-thumb{width:42px;height:28px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#1a1a1a;}
+  .yt-status-ok{color:#7be29a;font-weight:700;margin-right:4px;}
+  .yt-status-err{color:var(--err);font-weight:700;margin-right:4px;}
+  .list li.playing .yt-status-ok, .list li.playing .yt-status-err{filter:none;}
+  .yt-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+  .yt-clear{font-size:10.5px;color:var(--text-dim);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0;transition:opacity 0.15s;}
+  .yt-clear:active{opacity:0.5;}
+  .yt-name-col{display:flex;flex-direction:column;gap:1px;overflow:hidden;}
+  .yt-name-col .yt-li-sub{font-size:10.5px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .list li.playing .yt-li-sub{color:#555;}
 
   .ambient-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
   .ambient-item:last-child{border-bottom:none;}
-  .switch{width:42px;height:24px;border-radius:14px;background:rgba(255,255,255,0.08);position:relative;cursor:pointer;flex-shrink:0;border:1px solid var(--line);}
-  .switch .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text-muted);transition:left 0.18s, background 0.18s;}
+  .switch{width:42px;height:24px;border-radius:14px;background:rgba(255,255,255,0.08);position:relative;cursor:pointer;flex-shrink:0;border:1px solid var(--line);transition:background 0.2s, border-color 0.2s, transform 0.15s;}
+  .switch:active{transform:scale(0.93);}
+  .switch .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text-muted);transition:left 0.22s cubic-bezier(.4,0,.2,1.4), background 0.18s;}
   .switch.on{background:#fff;border-color:#fff;}
   .switch.on .knob{left:20px;background:#000;}
   .ambient-label{flex-shrink:0;width:84px;font-size:12.5px;}
@@ -138,19 +167,34 @@
 
   .discord-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:12.5px;color:var(--text-muted);border-bottom:1px solid rgba(255,255,255,0.06);}
   .discord-row:last-of-type{border-bottom:none;}
+  .discord-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .discord-badge{font-size:10.5px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid var(--line);color:var(--text-dim);transition:background 0.25s, border-color 0.25s, color 0.25s;white-space:nowrap;}
+  .discord-badge.connected{background:rgba(120,220,150,0.14);border-color:rgba(120,220,150,0.45);color:#9be8ad;}
+  .discord-badge.connected::before{content:'● ';color:#7be29a;}
+  .discord-badge.checking{background:rgba(255,255,255,0.1);color:var(--text-muted);animation:badgePulse 1s ease-in-out infinite;}
+  @keyframes badgePulse{0%,100%{opacity:0.55;}50%{opacity:1;}}
   .discord-input-row{display:flex;gap:8px;margin-bottom:10px;}
-  .discord-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12px;outline:none;}
-  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 14px;font-size:12.5px;cursor:pointer;}
-  .discord-status{font-size:11.5px;color:var(--text-dim);margin-top:6px;min-height:14px;}
+  .discord-input-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:12px;outline:none;transition:border-color 0.2s, background 0.2s;}
+  .discord-input-row input:focus{border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.09);}
+  .discord-input-row input.valid{border-color:rgba(120,220,150,0.5);}
+  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 14px;font-size:12.5px;cursor:pointer;min-width:78px;transition:transform 0.15s, background 0.2s, border-color 0.2s;}
+  .btn-secondary:active{transform:scale(0.94);}
+  .btn-secondary.connected-state{background:rgba(120,220,150,0.12);border-color:rgba(120,220,150,0.4);color:#9be8ad;}
+  .discord-status{font-size:11.5px;color:var(--text-dim);margin-top:6px;min-height:14px;transition:opacity 0.2s;}
   .discord-status.ok{color:#cfcfcf;}
   .discord-status.err{color:var(--err);}
+  .discord-forget-row{display:flex;justify-content:flex-end;margin-top:4px;}
+  .discord-forget{font-size:11px;color:var(--text-dim);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.2);}
+  .discord-forget:active{opacity:0.6;}
 
   .timer-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
-  .timer-chip{padding:8px 14px;font-size:12.5px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
+  .timer-chip{padding:8px 14px;font-size:12.5px;border-radius:20px;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;transition:transform 0.15s, background 0.2s, color 0.2s, border-color 0.2s;}
+  .timer-chip:active{transform:scale(0.92);}
   .timer-chip.active{background:#fff;border-color:#fff;color:#000;}
   .timer-status{display:none;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:13px;}
-  .timer-status.show{display:flex;}
-  .timer-status .cancel{color:var(--err);font-size:12px;cursor:pointer;font-weight:600;}
+  .timer-status.show{display:flex;animation:fadeUp 0.25s ease;}
+  .timer-status .cancel{color:var(--err);font-size:12px;cursor:pointer;font-weight:600;transition:transform 0.15s, opacity 0.15s;}
+  .timer-status .cancel:active{transform:scale(0.9);opacity:0.6;}
   .fade-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--text-muted);}
 
   .footer-credit{text-align:center;font-size:10.5px;color:var(--text-dim);margin-top:20px;}
@@ -238,14 +282,17 @@
 
   <div class="tab-content" id="tab-youtube">
     <div class="card">
-      <h3>เพิ่มลิงก์ YouTube</h3>
+      <div class="yt-card-head">
+        <h3 style="margin:0;">เพิ่มลิงก์ YouTube</h3>
+        <span class="yt-clear" id="ytClearBtn">ล้างคิวที่บันทึกไว้</span>
+      </div>
       <div class="yt-input-row">
         <input type="text" id="ytInput" placeholder="วางลิงก์ YouTube ที่นี่...">
         <button class="btn-add" id="ytAddBtn">เพิ่ม</button>
       </div>
       <p class="yt-note" id="ytStatus">กำลังเตรียมตัวเล่น YouTube...</p>
       <ul class="list" id="ytList"></ul>
-      <p class="yt-note">เพิ่มลิงก์แล้วจะ "พร้อมเล่น" — กดปุ่ม ▶ ตรงเครื่องเล่นด้านบนเพื่อเริ่มเล่นจริง (เบราว์เซอร์กันการเล่นเสียงอัตโนมัติ ต้องกดเองครั้งแรก) วิดีโอถัดไปในคิวจะเล่นต่ออัตโนมัติเมื่อจบ</p>
+      <p class="yt-note">กดเพิ่มแล้วระบบจะเช็คทันทีว่าเล่นได้จริงไหม (✓ = เล่นได้ / ✕ = เล่นไม่ได้ จะลบออกจากคิวให้อัตโนมัติ) — ถ้ามีเพลงเล่นอยู่จะข้ามการเช็คเพื่อไม่ให้เสียงสะดุด กดปุ่ม ▶ ตรงเครื่องเล่นด้านบนเพื่อเริ่มเล่นจริง (เบราว์เซอร์กันการเล่นเสียงอัตโนมัติ ต้องกดเองครั้งแรก) วิดีโอถัดไปในคิวจะเล่นต่ออัตโนมัติเมื่อจบ • คิวที่เพิ่มจะถูกบันทึกในเครื่องนี้อัตโนมัติ เปิดแอปใหม่ก็ยังอยู่</p>
     </div>
   </div>
 
@@ -277,21 +324,28 @@
   </div>
 
   <div class="card">
-    <h3>🔗 เชื่อมต่อ Discord</h3>
+    <div class="discord-card-head">
+      <h3 style="margin:0;">🔗 เชื่อมต่อ Discord</h3>
+      <span class="discord-badge" id="discordBadge">ยังไม่เชื่อมต่อ</span>
+    </div>
     <div class="discord-input-row">
       <input type="text" id="discordWebhook" placeholder="วาง Discord Webhook URL ที่นี่...">
-      <button class="btn-secondary" id="discordTestBtn">ทดสอบ</button>
+      <button class="btn-secondary" id="discordTestBtn">เชื่อมต่อ</button>
     </div>
     <div class="discord-row">
       <span>แจ้งใน Discord เมื่อเริ่มเพลงใหม่</span>
       <div class="switch" id="switch-notifyTrack"><div class="knob"></div></div>
     </div>
+
     <div class="discord-row">
       <span>แจ้งใน Discord เมื่อ Sleep Timer หยุดเพลง</span>
       <div class="switch" id="switch-notifySleep"><div class="knob"></div></div>
     </div>
     <div class="discord-status" id="discordStatus"></div>
-    <p class="yt-note">วิธีหา Webhook URL: ในเซิร์ฟเวอร์ Discord ของคุณ → ตั้งค่าช่อง (⚙️) → Integrations → Webhooks → New Webhook → Copy URL แล้วเอามาวางที่นี่ (ลิงก์นี้ใช้ส่งข้อความเข้าช่องนั้นเท่านั้น ไม่เกี่ยวกับสถานะโปรไฟล์ Discord ส่วนตัว และจะหายไปถ้าปิด/รีเฟรชหน้านี้ ต้องวางใหม่ทุกครั้งที่เปิดแอป)</p>
+    <div class="discord-forget-row" id="discordForgetRow" style="display:none;">
+      <span class="discord-forget" id="discordForgetBtn">ลบการเชื่อมต่อนี้</span>
+    </div>
+    <p class="yt-note">วิธีหา Webhook URL: ในเซิร์ฟเวอร์ Discord ของคุณ → ตั้งค่าช่อง (⚙️) → Integrations → Webhooks → New Webhook → Copy URL แล้วเอามาวางที่นี่ครับ แอปจะตรวจสอบและเชื่อมต่อให้อัตโนมัติ และจดจำไว้ในเครื่องนี้ ไม่ต้องวางใหม่ทุกครั้งที่เปิดแอป (ลิงก์นี้ใช้ส่งข้อความเข้าช่องนั้นเท่านั้น ไม่เกี่ยวกับสถานะโปรไฟล์ Discord ส่วนตัว)</p>
   </div>
 
   <div class="card">
@@ -400,6 +454,7 @@
     else { icon.className='icon-play'; icon.innerHTML=''; }
     isPlaying = playing;
     setVinylPlaying(playing);
+    document.getElementById('playBtn').classList.toggle('is-playing', playing);
   }
   function setTrackInfo(title, sub){
     document.getElementById('trackTitle').textContent = title;
@@ -422,7 +477,52 @@
   }
 
   /* ---------------- Discord webhook ---------------- */
-  document.getElementById('discordWebhook').addEventListener('input', e=>{ discordWebhook = e.target.value.trim(); });
+  const DISCORD_RE = /^https:\/\/(canary\.|ptb\.)?discord(app)?\.com\/api\/webhooks\/\d+\/[\w-]+\/?$/;
+  const discordInputEl = document.getElementById('discordWebhook');
+  const discordBadgeEl = document.getElementById('discordBadge');
+  const discordTestBtn = document.getElementById('discordTestBtn');
+  const discordForgetRow = document.getElementById('discordForgetRow');
+  let discordConnected = false;
+
+  function setDiscordBadge(state){
+    discordBadgeEl.className = 'discord-badge'+(state==='connected'?' connected':state==='checking'?' checking':'');
+    discordBadgeEl.textContent = state==='connected' ? 'เชื่อมต่อแล้ว' : state==='checking' ? 'กำลังตรวจสอบ...' : 'ยังไม่เชื่อมต่อ';
+  }
+  function setDiscordButtonState(connected){
+    discordTestBtn.classList.toggle('connected-state', connected);
+    discordTestBtn.textContent = connected ? '✓ แล้ว' : 'เชื่อมต่อ';
+  }
+
+  // restore saved webhook
+  try{
+    const saved = localStorage.getItem('nightdrift_discord_webhook');
+    if(saved){
+      discordInputEl.value = saved;
+      discordWebhook = saved;
+      if(DISCORD_RE.test(saved)){
+        discordInputEl.classList.add('valid');
+        discordConnected = true;
+        setDiscordBadge('connected');
+        setDiscordButtonState(true);
+        discordForgetRow.style.display = 'flex';
+        setDiscordStatus('✓ เชื่อมต่อไว้แล้วจากครั้งก่อน พร้อมใช้งาน', 'ok');
+      }
+    }
+  }catch(e){}
+
+  discordInputEl.addEventListener('input', e=>{
+    discordWebhook = e.target.value.trim();
+    discordConnected = false;
+    setDiscordBadge('idle');
+    setDiscordButtonState(false);
+    discordInputEl.classList.toggle('valid', DISCORD_RE.test(discordWebhook));
+    if(!discordWebhook){ setDiscordStatus('',''); discordForgetRow.style.display='none'; }
+  });
+  // auto-connect right after a paste, since that's the common flow
+  discordInputEl.addEventListener('paste', ()=>{
+    setTimeout(()=>{ if(DISCORD_RE.test(discordInputEl.value.trim())) discordTestBtn.click(); }, 50);
+  });
+
   document.getElementById('switch-notifyTrack').onclick = function(){ notifyOnTrack=!notifyOnTrack; this.classList.toggle('on', notifyOnTrack); };
   document.getElementById('switch-notifySleep').onclick = function(){ notifyOnSleepEnd=!notifyOnSleepEnd; this.classList.toggle('on', notifyOnSleepEnd); };
 
@@ -442,11 +542,41 @@
       return res.ok;
     }catch(e){ return false; }
   }
-  document.getElementById('discordTestBtn').onclick = async ()=>{
-    if(!discordWebhook){ setDiscordStatus('กรุณาวาง Webhook URL ก่อนครับ','err'); return; }
-    setDiscordStatus('กำลังส่ง...', '');
-    const ok = await sendDiscordMessage('🌙 ทดสอบการเชื่อมต่อจาก Night Drift สำเร็จแล้ว!');
-    setDiscordStatus(ok ? '✓ ส่งสำเร็จ ไปดูใน Discord ได้เลย' : '✕ ส่งไม่สำเร็จ ลองตรวจ Webhook URL อีกครั้ง', ok?'ok':'err');
+  discordTestBtn.onclick = async ()=>{
+    const url = discordInputEl.value.trim();
+    if(!url){ setDiscordStatus('กรุณาวาง Webhook URL ก่อนครับ','err'); return; }
+    if(!DISCORD_RE.test(url)){
+      setDiscordStatus('⚠ รูปแบบลิงก์ไม่ใช่ Discord Webhook — ควรขึ้นต้นด้วย https://discord.com/api/webhooks/...','err');
+      return;
+    }
+    discordWebhook = url;
+    setDiscordBadge('checking');
+    setDiscordStatus('กำลังเชื่อมต่อ...', '');
+    const ok = await sendDiscordMessage('🌙 เชื่อมต่อ Night Drift สำเร็จแล้ว! พร้อมส่งแจ้งเตือนเข้าช่องนี้');
+    if(ok){
+      discordConnected = true;
+      setDiscordBadge('connected');
+      setDiscordButtonState(true);
+      discordForgetRow.style.display = 'flex';
+      try{ localStorage.setItem('nightdrift_discord_webhook', url); }catch(e){}
+      setDiscordStatus('✓ เชื่อมต่อสำเร็จ ไปดูใน Discord ได้เลย — ระบบจดจำลิงก์นี้ไว้ในเครื่องแล้ว', 'ok');
+    } else {
+      discordConnected = false;
+      setDiscordBadge('idle');
+      setDiscordButtonState(false);
+      setDiscordStatus('✕ เชื่อมต่อไม่สำเร็จ ลองตรวจ Webhook URL อีกครั้ง (อาจถูกลบช่องหรือลิงก์ผิด)', 'err');
+    }
+  };
+  document.getElementById('discordForgetBtn').onclick = ()=>{
+    try{ localStorage.removeItem('nightdrift_discord_webhook'); }catch(e){}
+    discordInputEl.value = '';
+    discordInputEl.classList.remove('valid');
+    discordWebhook = '';
+    discordConnected = false;
+    setDiscordBadge('idle');
+    setDiscordButtonState(false);
+    discordForgetRow.style.display = 'none';
+    setDiscordStatus('ลบการเชื่อมต่อแล้ว', '');
   };
 
   /* ================= FILE PLAYLIST ================= */
@@ -520,22 +650,128 @@
     el.className = 'yt-note'+(isErr?' err':' ok');
   }
 
-  document.getElementById('ytAddBtn').onclick = ()=>{
-    const id = extractYouTubeId(ytInput.value.trim());
+  const ytAddBtn = document.getElementById('ytAddBtn');
+  const YT_SAVE_KEY = 'nightdrift_yt_queue';
+
+  function saveYtQueue(){
+    try{ localStorage.setItem(YT_SAVE_KEY, JSON.stringify(ytQueue)); }catch(e){}
+  }
+  function restoreYtQueue(){
+    try{
+      const raw = localStorage.getItem(YT_SAVE_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length){
+        ytQueue = parsed.filter(it => it && it.id);
+        renderYtList();
+        setYtStatus('📂 กู้คืนเพลย์ลิสต์ YouTube ที่บันทึกไว้ ('+ytQueue.length+' รายการ) — กดรายการที่ต้องการเพื่อเล่น', false);
+      }
+    }catch(e){}
+  }
+
+  // Checks playability by actually cueing the video in the real (hidden) YT player
+  // and watching for onError vs a real CUED/UNSTARTED state — fast, no network call.
+  let checkToken = 0;
+  function checkYtPlayable(id, timeoutMs){
+    return new Promise(resolve=>{
+      const myToken = ++checkToken;
+      let settled = false;
+      const finish = (ok, reason)=>{
+        if(settled) return;
+        settled = true;
+        ytCheckErrorHandler = null;
+        ytCheckStateHandler = null;
+        resolve({ok, reason});
+      };
+      const onErr = (e)=>{
+        if(myToken!==checkToken) return;
+        const map = {2:'รหัสวิดีโอไม่ถูกต้อง',5:'เครื่องเล่นมีปัญหา',100:'ไม่พบวิดีโอ (อาจถูกลบ/เป็นส่วนตัว)',101:'เจ้าของวิดีโอปิดการฝังเล่นนอก YouTube',150:'เจ้าของวิดีโอปิดการฝังเล่นนอก YouTube'};
+        finish(false, map[e.data]||'เล่นวิดีโอนี้ไม่ได้');
+      };
+      const onState = (e)=>{
+        if(myToken!==checkToken) return;
+        // CUED(5), UNSTARTED(-1), PLAYING(1), BUFFERING(3) all mean the video is actually loadable
+        if(e.data===5 || e.data===-1 || e.data===1 || e.data===3){ finish(true, null); }
+      };
+      ytCheckErrorHandler = onErr;
+      ytCheckStateHandler = onState;
+      try{ ytPlayer.cueVideoById(id); }catch(err){ finish(false, 'โหลดตัวเล่นไม่สำเร็จ'); return; }
+      setTimeout(()=>{ if(myToken===checkToken) finish(false, 'หมดเวลารอ (อาจเน็ตช้าหรือวิดีโอมีปัญหา)'); }, timeoutMs||4000);
+    });
+  }
+  let ytCheckErrorHandler = null;
+  let ytCheckStateHandler = null;
+
+  ytAddBtn.onclick = async ()=>{
+    const raw = ytInput.value.trim();
+    const id = extractYouTubeId(raw);
     if(!id){ setYtStatus('ลิงก์ไม่ถูกต้อง ลองคัดลอกจาก YouTube ใหม่อีกครั้งนะครับ', true); return; }
-    ytQueue.push({id});
+
+    ytAddBtn.disabled = true;
+    ytAddBtn.classList.add('loading');
+    const prevLabel = ytAddBtn.textContent;
+    ytAddBtn.textContent = '...';
+
+    const item = {id, title:null, author:null, thumb:'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg', checked:false, playable:null};
+    const wouldInterruptPlayback = (sourceType==='youtube' && isPlaying);
+    const previouslyLoadedId = (sourceType==='youtube' && ytIndex>-1 && ytQueue[ytIndex]) ? ytQueue[ytIndex].id : null;
+
+    if(!ytReady){
+      setYtStatus('⏳ ตัวเล่น YouTube ยังไม่พร้อม รอสักครู่...', false);
+      const waitStart = Date.now();
+      while(!ytReady && Date.now()-waitStart < 5000){ await new Promise(r=>setTimeout(r,150)); }
+    }
+
+    if(ytReady && !wouldInterruptPlayback){
+      setYtStatus('⚡ กำลังเช็คว่าเล่นได้จริงไหม...', false);
+      const result = await checkYtPlayable(id, 4000);
+      item.checked = true;
+      item.playable = result.ok;
+      if(!result.ok) item.errorReason = result.reason;
+      // restore whatever was loaded before the check, so a paused track isn't left swapped out
+      if(previouslyLoadedId && previouslyLoadedId!==id){
+        try{ ytPlayer.cueVideoById(previouslyLoadedId); }catch(e){}
+      }
+    }
+
+    ytAddBtn.disabled = false;
+    ytAddBtn.classList.remove('loading');
+    ytAddBtn.textContent = prevLabel;
+
+    ytQueue.push(item);
     ytInput.value='';
     renderYtList();
-    if(ytIndex===-1){ loadYtIndex(ytQueue.length-1); }
-    else { setYtStatus('เพิ่มลงคิวแล้ว (มี '+ytQueue.length+' รายการ)', false); }
+    saveYtQueue();
+
+    if(item.checked && item.playable===false){
+      setYtStatus('✕ เล่นวิดีโอนี้ไม่ได้: '+item.errorReason+' — ลบออกจากคิวให้แล้ว หรือลองลิงก์อื่น', true);
+      const idx = ytQueue.indexOf(item);
+      if(idx>-1) ytQueue.splice(idx,1);
+      renderYtList();
+      saveYtQueue();
+      return;
+    }
+
+    if(ytIndex===-1){
+      loadYtIndex(ytQueue.length-1);
+    } else if(item.checked){
+      setYtStatus('✓ เล่นได้! เพิ่มลงคิวแล้ว (มี '+ytQueue.length+' รายการ) • บันทึกแล้ว', false);
+    } else {
+      setYtStatus('เพิ่มลงคิวแล้ว แต่ยังเช็คความเล่นได้ไม่ทัน (มี '+ytQueue.length+' รายการ) • บันทึกแล้ว', false);
+    }
   };
+  ytInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') ytAddBtn.click(); });
 
   function renderYtList(){
     ytListEl.innerHTML='';
     ytQueue.forEach((item,i)=>{
       const li = document.createElement('li');
-      li.className = (i===ytIndex && sourceType==='youtube') ? 'playing':'';
-      li.innerHTML = '<span class="dot"></span><span class="name">วิดีโอ #'+(i+1)+' • '+item.id+'</span><span class="rm" data-i="'+i+'">✕</span>';
+      li.className = (i===ytIndex && sourceType==='youtube') ? 'playing yt-li':'yt-li';
+      const label = item.title ? escapeHtml(item.title) : ('วิดีโอ #'+(i+1)+' • '+item.id);
+      const statusIcon = item.checked ? (item.playable ? '<span class="yt-status-ok">✓</span>' : '<span class="yt-status-err">✕</span>') : '';
+      const sub = item.author ? ('<span class="yt-li-sub">'+escapeHtml(item.author)+'</span>') : '';
+      const thumb = item.thumb ? '<img class="yt-thumb" src="'+item.thumb+'" alt="">' : '<span class="dot"></span>';
+      li.innerHTML = thumb+'<span class="name yt-name-col">'+statusIcon+label+sub+'</span><span class="rm" data-i="'+i+'">✕</span>';
       li.onclick = (ev)=>{
         if(ev.target.classList.contains('rm')) return;
         loadYtIndex(i);
@@ -546,10 +782,21 @@
         ytQueue.splice(i,1);
         if(ytIndex>i) ytIndex--; else if(ytIndex===i) ytIndex=-1;
         renderYtList();
+        saveYtQueue();
       };
       ytListEl.appendChild(li);
     });
   }
+  restoreYtQueue();
+  document.getElementById('ytClearBtn').onclick = ()=>{
+    if(sourceType==='youtube'){ pauseCurrent(); }
+    ytQueue = [];
+    ytIndex = -1;
+    sourceType = (sourceType==='youtube') ? 'none' : sourceType;
+    try{ localStorage.removeItem(YT_SAVE_KEY); }catch(e){}
+    renderYtList();
+    setYtStatus('ล้างคิวที่บันทึกไว้แล้ว', false);
+  };
 
   const ytScript = document.createElement('script');
   ytScript.src = 'https://www.youtube.com/iframe_api';
@@ -572,11 +819,13 @@
     if(pendingPlay){ pendingPlay=false; ytPlayer.playVideo(); }
   }
   function onYtStateChange(e){
+    if(ytCheckStateHandler){ ytCheckStateHandler(e); }
     if(e.data === YT.PlayerState.PLAYING){ setPlayIcon(true); setYtStatus('กำลังเล่นอยู่', false); }
     else if(e.data === YT.PlayerState.PAUSED){ setPlayIcon(false); }
     else if(e.data === YT.PlayerState.ENDED){ if(sourceType==='youtube') nextTrack(); }
   }
   function onYtError(e){
+    if(ytCheckErrorHandler){ ytCheckErrorHandler(e); return; }
     const map = {2:'รหัสวิดีโอไม่ถูกต้อง',5:'เครื่องเล่นมีปัญหา ลองวิดีโออื่น',100:'ไม่พบวิดีโอนี้ (อาจถูกลบหรือเป็นส่วนตัว)',101:'เจ้าของวิดีโอนี้ปิดการฝังเล่นนอก YouTube ลองวิดีโออื่นนะครับ',150:'เจ้าของวิดีโอนี้ปิดการฝังเล่นนอก YouTube ลองวิดีโออื่นนะครับ'};
     setYtStatus('⚠ '+(map[e.data]||'เล่นวิดีโอนี้ไม่ได้'), true);
   }
@@ -585,14 +834,18 @@
     ytIndex = i;
     sourceType = 'youtube';
     audioEl.pause();
+    const item = ytQueue[i];
+    const displayTitle = item.title || ('วิดีโอ YouTube #'+(i+1));
+    const displaySub = item.author || 'YouTube';
     if(ytReady){
-      ytPlayer.cueVideoById(ytQueue[i].id);
+      ytPlayer.cueVideoById(item.id);
       ytPlayer.setVolume(document.getElementById('masterVol').value);
-      setTrackInfo('วิดีโอ YouTube #'+(i+1), 'พร้อมแล้ว — กดปุ่ม ▶ เพื่อเล่น');
+      setTrackInfo(displayTitle, item.title ? displaySub+' • พร้อมเล่น — กด ▶' : 'พร้อมแล้ว — กดปุ่ม ▶ เพื่อเล่น');
       setYtStatus('พร้อมเล่นแล้ว กดปุ่ม ▶ ที่เครื่องเล่นด้านบน', false);
-      if(notifyOnTrack) sendDiscordMessage('🎵 กำลังฟัง: วิดีโอ YouTube ('+ytQueue[i].id+')');
+      if(notifyOnTrack) sendDiscordMessage('🎵 กำลังฟัง: '+displayTitle+(item.author ? ' — '+item.author : ''));
     } else {
       pendingLoadIndex = i;
+      setTrackInfo(displayTitle, displaySub+' • กำลังโหลดตัวเล่น...');
       setYtStatus('กำลังโหลดตัวเล่น YouTube รอสักครู่...', false);
     }
     renderYtList();
